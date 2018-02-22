@@ -210,6 +210,10 @@ export default class Gallery extends PureComponent {
         }
     }
 
+   setImageScale = (transform, id) => {
+        this.imageScales.set(id, transform.scale)
+   }
+
     getCurrentImageTransformer () {
         return this.getImageTransformer(this.currentPage);
     }
