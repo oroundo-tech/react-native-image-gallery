@@ -25,17 +25,21 @@ export default class Gallery extends PureComponent {
         removeClippedSubviews: PropTypes.bool,
         imageComponent: PropTypes.func,
         errorComponent: PropTypes.func,
-        flatListProps: PropTypes.object
+        flatListProps: PropTypes.object,
+        disableEffects: PropTypes.bool
     };
 
     static defaultProps = {
         removeClippedSubviews: true,
         imageComponent: undefined,
         scrollViewStyle: {},
-        flatListProps: DEFAULT_FLAT_LIST_PROPS
+        flatListProps: DEFAULT_FLAT_LIST_PROPS,
+        onResponderMove: () => {},
+        onResponderRelease: () => {}
     };
 
     imageRefs = new Map();
+    imageScales = new Map();
     activeResponder = undefined;
     firstMove = true;
     currentPage = 0;
@@ -57,6 +61,7 @@ export default class Gallery extends PureComponent {
 
     componentWillMount () {
         let onResponderReleaseOrTerminate = (evt, gestureState) => {
+            this.props.onResponderRelease()
             if (this.activeResponder) {
                 if (this.activeResponder === this.viewPagerResponder &&
                     !this.shouldScrollViewPager(evt, gestureState) &&
@@ -77,6 +82,7 @@ export default class Gallery extends PureComponent {
             onStartShouldSetResponder: (evt, gestureState) => true,
             onResponderGrant: this.activeImageResponder,
             onResponderMove: (evt, gestureState) => {
+                this.props.onResponderMove(gestureState, this.imageScales.get(this.currentPage))
                 if (this.firstMove) {
                     this.firstMove = false;
                     if (this.shouldScrollViewPager(evt, gestureState)) {
@@ -229,6 +235,7 @@ export default class Gallery extends PureComponent {
         return (
             <TransformableImage
               onViewTransformed={((transform) => {
+                  this.setImageScale(transform, pageId)
                   onViewTransformed && onViewTransformed(transform, pageId);
               })}
               onTransformGestureReleased={((transform) => {
@@ -240,6 +247,9 @@ export default class Gallery extends PureComponent {
               errorComponent={errorComponent}
               imageComponent={imageComponent}
               image={pageData}
+              enableScale={disableEffects ? false : true}
+              enableTranslate={disableEffects ? false : true}
+              enableTransform={disableEffects ? false : true}
             />
         );
     }
